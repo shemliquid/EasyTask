@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  email    String   @unique
+  password String
+  role     Role     @default(TA)
+  name     String?
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  TA
+  LECTURER
+}
+
+model Student {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  indexNumber      String   @unique
+  name             String?
+  assignmentCount  Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model FlaggedRecord {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  indexNumber String
+  name        String?
+  issueType   String   // DUPLICATE_INDEX | MISSING_NAME | CONFLICT
+  source      String   // manual | excel
+  resolved    Boolean  @default(false)
+  resolution  String?  // edit | merge | approved
+  assignmentCount Int   @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
