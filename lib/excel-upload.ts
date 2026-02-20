@@ -27,7 +27,7 @@ async function getSheetRows(buffer: Buffer): Promise<UploadRow[]> {
   const wb = XLSX.read(buffer, { type: "buffer", raw: false });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   if (!sheet) return [];
-  const data = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+  const data = XLSX.utils.sheet_to_json(sheet, {
     header: 1,
     defval: "",
   }) as unknown[][];
