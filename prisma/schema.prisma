@@ -28,6 +28,8 @@ model Student {
   assignmentCount  Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@index([name])
 }
 
 model FlaggedRecord {
@@ -41,4 +43,7 @@ model FlaggedRecord {
   assignmentCount Int   @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([resolved])
+  @@index([issueType])
 }

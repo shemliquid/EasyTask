@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { FlaggedTable } from "./flagged-table";
+import { FlaggedTable } from "../flagged-table";
 
 export default async function FlaggedPage() {
   const session = await auth();
@@ -14,13 +14,17 @@ export default async function FlaggedPage() {
   });
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Flagged records
-      </h1>
-      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Records that need attention. Resolve by approving into main records, editing details, or merging with an existing student.
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+          Flagged Records
+        </h1>
+        <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+          Review and resolve records that require attention before adding them
+          to the main student database.
+        </p>
+      </div>
+
       <FlaggedTable records={records} />
     </div>
   );
