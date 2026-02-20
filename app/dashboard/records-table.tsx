@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Student {
   id: string;
@@ -62,7 +62,7 @@ export function RecordsTable({ students }: { students: Student[] }) {
 
   return (
     <div className="mt-6 space-y-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
           <Input
@@ -78,7 +78,8 @@ export function RecordsTable({ students }: { students: Student[] }) {
         </div>
       </div>
 
-      <Card>
+      {/* Desktop Table View */}
+      <Card className="hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -121,6 +122,52 @@ export function RecordsTable({ students }: { students: Student[] }) {
           </TableBody>
         </Table>
       </Card>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {filteredStudents.length === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="text-sm text-neutral-500">
+              No records found matching "{search}"
+            </p>
+          </Card>
+        ) : (
+          filteredStudents.map((student) => (
+            <Card key={student.id}>
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                      Index Number
+                    </p>
+                    <p className="mt-1 font-mono text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                      {student.indexNumber}
+                    </p>
+                    <p className="mt-3 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                      Student Name
+                    </p>
+                    <p className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+                      {student.name ?? (
+                        <span className="italic text-neutral-400 dark:text-neutral-500">
+                          No name
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                      Assignments
+                    </p>
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      {student.assignmentCount}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 }

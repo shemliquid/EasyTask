@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Modal,
   ModalHeader,
@@ -130,7 +130,8 @@ export function FlaggedTable({ records }: { records: FlaggedRecord[] }) {
   return (
     <>
       <div className="mt-6">
-        <Card>
+        {/* Desktop Table View */}
+        <Card className="hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -178,10 +179,70 @@ export function FlaggedTable({ records }: { records: FlaggedRecord[] }) {
             </TableBody>
           </Table>
         </Card>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3">
+          {records.map((record) => (
+            <Card key={record.id}>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                        Index Number
+                      </p>
+                      <p className="mt-1 font-mono text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                        {record.indexNumber}
+                      </p>
+                    </div>
+                    <Badge variant={issueTypeVariant(record.issueType) as any}>
+                      {record.issueType.replace(/_/g, " ")}
+                    </Badge>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                      Name
+                    </p>
+                    <p className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+                      {record.name ?? (
+                        <span className="italic text-neutral-400 dark:text-neutral-500">
+                          No name provided
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <div>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        Source:{" "}
+                        <span className="capitalize">{record.source}</span>
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                        Count:{" "}
+                        <span className="font-semibold">
+                          {record.assignmentCount}
+                        </span>
+                      </p>
+                    </div>
+                    <Button size="sm" onClick={() => openModal(record)}>
+                      Resolve
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Resolution Modal */}
-      <Modal open={!!selectedRecord} onClose={closeModal} className="max-w-xl">
+      <Modal
+        open={!!selectedRecord}
+        onClose={closeModal}
+        className="max-w-[95vw] sm:max-w-xl"
+      >
         {selectedRecord && (
           <>
             <ModalHeader onClose={closeModal}>
@@ -265,8 +326,13 @@ export function FlaggedTable({ records }: { records: FlaggedRecord[] }) {
                 </div>
               </div>
             </ModalContent>
-            <ModalFooter>
-              <Button variant="outline" onClick={closeModal} disabled={loading}>
+            <ModalFooter className="flex-col gap-2 sm:flex-row sm:gap-3">
+              <Button
+                variant="outline"
+                onClick={closeModal}
+                disabled={loading}
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
               <Button
@@ -274,6 +340,7 @@ export function FlaggedTable({ records }: { records: FlaggedRecord[] }) {
                 onClick={() => handleResolve("edit")}
                 loading={loading}
                 disabled={loading}
+                className="w-full sm:w-auto"
               >
                 <Edit className="h-4 w-4" />
                 Update & Add
@@ -282,6 +349,7 @@ export function FlaggedTable({ records }: { records: FlaggedRecord[] }) {
                 onClick={() => handleResolve("approve")}
                 loading={loading}
                 disabled={loading}
+                className="w-full sm:w-auto"
               >
                 <Check className="h-4 w-4" />
                 Approve As-Is
