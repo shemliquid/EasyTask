@@ -94,7 +94,7 @@ export default async function DashboardPage() {
 
       {/* Records Table */}
       <div>
-        <RecordsTable students={students} />
+        <RecordsTable students={students} userRole={session.user.role} />
       </div>
     </div>
   );
