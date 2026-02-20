@@ -47,3 +47,15 @@ model FlaggedRecord {
   @@index([resolved])
   @@index([issueType])
 }
+
+model LookupLink {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  token      String   @unique
+  createdBy  String   @db.ObjectId
+  active     Boolean  @default(true)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([active])
+}

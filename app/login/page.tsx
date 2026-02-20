@@ -118,11 +118,11 @@ function LoginForm() {
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-neutral-500 dark:text-neutral-400">
+        {/*<div className="mt-6 text-center text-xs text-neutral-500 dark:text-neutral-400">
           <p>Demo credentials:</p>
           <p className="mt-1">TA: ta@easytask.edu / ta123</p>
           <p>Lecturer: lecturer@easytask.edu / lecturer123</p>
-        </div>
+        </div>*/}
       </CardContent>
     </Card>
   );

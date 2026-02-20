@@ -2,7 +2,15 @@
 
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { X, Menu, LayoutDashboard, Plus, Upload, AlertCircle } from "lucide-react";
+import {
+  X,
+  Menu,
+  LayoutDashboard,
+  Plus,
+  Upload,
+  AlertCircle,
+  Link2,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -45,6 +53,11 @@ export function MobileMenu({ email, role, isLecturer }: MobileMenuProps) {
             label: "Flagged",
             icon: AlertCircle,
           },
+          {
+            href: "/dashboard/lookup-links",
+            label: "Lookup Links",
+            icon: Link2,
+          },
         ]
       : []),
   ];
@@ -60,7 +73,10 @@ export function MobileMenu({ email, role, isLecturer }: MobileMenuProps) {
       </button>
 
       <Transition show={isOpen} as={Fragment}>
-        <Dialog onClose={() => setIsOpen(false)} className="relative z-50 md:hidden">
+        <Dialog
+          onClose={() => setIsOpen(false)}
+          className="relative z-50 md:hidden"
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -102,7 +118,10 @@ export function MobileMenu({ email, role, isLecturer }: MobileMenuProps) {
                   <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                     {email}
                   </p>
-                  <Badge variant={isLecturer ? "info" : "default"} className="mt-2">
+                  <Badge
+                    variant={isLecturer ? "info" : "default"}
+                    className="mt-2"
+                  >
                     {role}
                   </Badge>
                 </div>
@@ -124,7 +143,7 @@ export function MobileMenu({ email, role, isLecturer }: MobileMenuProps) {
                           "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                           isActive
                             ? "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-50"
-                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800/50 dark:hover:text-neutral-100"
+                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800/50 dark:hover:text-neutral-100",
                         )}
                       >
                         <Icon className="h-5 w-5" />
