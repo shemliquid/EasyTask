@@ -29,7 +29,8 @@ model Student {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  @@index([name])
+  @@index([assignmentCount])  // For stats aggregation queries
+  @@index([name])              // For name-based searches
 }
 
 model FlaggedRecord {
@@ -44,8 +45,9 @@ model FlaggedRecord {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([resolved])
-  @@index([issueType])
+  @@index([indexNumber, resolved])  // Compound index for common query pattern
+  @@index([resolved])                // For filtering by resolution status
+  @@index([issueType])               // For filtering by issue type
 }
 
 model LookupLink {
@@ -56,6 +58,7 @@ model LookupLink {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
 
-  @@index([expiresAt])
-  @@index([active])
+  @@index([token, active, expiresAt])  // Compound index for lookup queries
+  @@index([expiresAt])                  // For cleanup queries
+  @@index([active])                     // For filtering active links
 }

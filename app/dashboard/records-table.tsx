@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Pencil, Trash2 } from "lucide-react";
+import { Search, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -32,9 +33,11 @@ interface Student {
 interface RecordsTableProps {
   students: Student[];
   userRole: string;
+  currentPage: number;
+  totalPages: number;
 }
 
-export function RecordsTable({ students, userRole }: RecordsTableProps) {
+export function RecordsTable({ students, userRole, currentPage, totalPages }: RecordsTableProps) {
   const [search, setSearch] = useState("");
   const [editModal, setEditModal] = useState<{
     open: boolean;
@@ -444,6 +447,53 @@ export function RecordsTable({ students, userRole }: RecordsTableProps) {
           </Button>
         </ModalFooter>
       </Modal>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-2">
+          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild={currentPage > 1}
+              disabled={currentPage === 1}
+            >
+              {currentPage > 1 ? (
+                <Link href={`/dashboard?page=${currentPage - 1}`}>
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Previous
+                </Link>
+              ) : (
+                <span>
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Previous
+                </span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              asChild={currentPage < totalPages}
+              disabled={currentPage >= totalPages}
+            >
+              {currentPage < totalPages ? (
+                <Link href={`/dashboard?page=${currentPage + 1}`}>
+                  Next
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Link>
+              ) : (
+                <span>
+                  Next
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

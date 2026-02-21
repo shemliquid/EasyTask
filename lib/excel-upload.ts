@@ -63,22 +63,50 @@ export async function processExcelUpload(
     flagged: 0,
     errors: [],
   };
-  const seenInFile = new Map<string, number>();
 
+  // PERFORMANCE OPTIMIZATION: Batch load all existing data upfront to avoid N+1 queries
+  const existingStudents = new Map(
+    (
+      await prisma.student.findMany({
+        select: { indexNumber: true, id: true, assignmentCount: true, name: true },
+      })
+    ).map((s) => [s.indexNumber, s])
+  );
+
+  const unresolvedFlags = new Map(
+    (
+      await prisma.flaggedRecord.findMany({
+        where: { resolved: false },
+        select: { indexNumber: true, id: true },
+      })
+    ).map((f) => [f.indexNumber, f])
+  );
+
+  const seenInFile = new Map<string, number>();
+  const toCreate: { indexNumber: string; name: string; assignmentCount: number }[] = [];
+  const toUpdate: { id: string; assignmentCount: number }[] = [];
+  const toFlag: {
+    indexNumber: string;
+    name: string | null;
+    issueType: IssueType;
+    source: string;
+    assignmentCount: number;
+  }[] = [];
+
+  // Process all rows in memory
   for (let i = 0; i < rows.length; i++) {
     const rowIndex = i + 2;
     const { indexNumber, name } = rows[i];
     result.processed++;
 
+    // Check for duplicate in file
     if (seenInFile.has(indexNumber)) {
-      await prisma.flaggedRecord.create({
-        data: {
-          indexNumber,
-          name: name || null,
-          issueType: "DUPLICATE_INDEX",
-          source: "excel",
-          assignmentCount: 1,
-        },
+      toFlag.push({
+        indexNumber,
+        name: name || null,
+        issueType: "DUPLICATE_INDEX",
+        source: "excel",
+        assignmentCount: 1,
       });
       result.flagged++;
       result.errors.push({
@@ -90,31 +118,27 @@ export async function processExcelUpload(
     }
     seenInFile.set(indexNumber, rowIndex);
 
-    const existing = await prisma.student.findUnique({
-      where: { indexNumber },
-    });
+    // Check existing student (in-memory lookup)
+    const existing = existingStudents.get(indexNumber);
 
     if (existing) {
-      await prisma.student.update({
-        where: { id: existing.id },
-        data: { assignmentCount: existing.assignmentCount + 1 },
+      toUpdate.push({
+        id: existing.id,
+        assignmentCount: existing.assignmentCount + 1,
       });
       result.incremented++;
       continue;
     }
 
-    const conflictingFlag = await prisma.flaggedRecord.findFirst({
-      where: { indexNumber, resolved: false },
-    });
+    // Check conflicting flag (in-memory lookup)
+    const conflictingFlag = unresolvedFlags.has(indexNumber);
     if (conflictingFlag) {
-      await prisma.flaggedRecord.create({
-        data: {
-          indexNumber,
-          name: name || null,
-          issueType: "CONFLICT",
-          source: "excel",
-          assignmentCount: 1,
-        },
+      toFlag.push({
+        indexNumber,
+        name: name || null,
+        issueType: "CONFLICT",
+        source: "excel",
+        assignmentCount: 1,
       });
       result.flagged++;
       result.errors.push({
@@ -126,14 +150,12 @@ export async function processExcelUpload(
     }
 
     if (!name) {
-      await prisma.flaggedRecord.create({
-        data: {
-          indexNumber,
-          name: null,
-          issueType: "MISSING_NAME",
-          source: "excel",
-          assignmentCount: 1,
-        },
+      toFlag.push({
+        indexNumber,
+        name: null,
+        issueType: "MISSING_NAME",
+        source: "excel",
+        assignmentCount: 1,
       });
       result.flagged++;
       result.errors.push({
@@ -144,14 +166,39 @@ export async function processExcelUpload(
       continue;
     }
 
-    await prisma.student.create({
-      data: {
-        indexNumber,
-        name,
-        assignmentCount: 1,
-      },
+    toCreate.push({
+      indexNumber,
+      name,
+      assignmentCount: 1,
     });
     result.added++;
+  }
+
+  // PERFORMANCE OPTIMIZATION: Batch execute all database operations
+  if (toCreate.length > 0) {
+    await prisma.student.createMany({
+      data: toCreate,
+      skipDuplicates: true,
+    });
+  }
+
+  if (toUpdate.length > 0) {
+    // Note: MongoDB doesn't support updateMany with different values per record
+    // Using Promise.all to execute updates concurrently is still much faster than sequential
+    await Promise.all(
+      toUpdate.map((u) =>
+        prisma.student.update({
+          where: { id: u.id },
+          data: { assignmentCount: u.assignmentCount },
+        })
+      )
+    );
+  }
+
+  if (toFlag.length > 0) {
+    await prisma.flaggedRecord.createMany({
+      data: toFlag,
+    });
   }
 
   return result;

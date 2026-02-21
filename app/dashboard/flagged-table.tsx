@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MoreVertical, Check, Edit, X } from "lucide-react";
+import { MoreVertical, Check, Edit, X, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +34,13 @@ interface FlaggedRecord {
   assignmentCount: number;
 }
 
-export function FlaggedTable({ records }: { records: FlaggedRecord[] }) {
+interface FlaggedTableProps {
+  records: FlaggedRecord[];
+  currentPage: number;
+  totalPages: number;
+}
+
+export function FlaggedTable({ records, currentPage, totalPages }: FlaggedTableProps) {
   const [selectedRecord, setSelectedRecord] = useState<FlaggedRecord | null>(
     null,
   );
@@ -235,6 +242,53 @@ export function FlaggedTable({ records }: { records: FlaggedRecord[] }) {
             </Card>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between px-2">
+            <div className="text-sm text-neutral-600 dark:text-neutral-400">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                asChild={currentPage > 1}
+                disabled={currentPage === 1}
+              >
+                {currentPage > 1 ? (
+                  <Link href={`/dashboard/flagged?page=${currentPage - 1}`}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Previous
+                  </Link>
+                ) : (
+                  <span>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Previous
+                  </span>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild={currentPage < totalPages}
+                disabled={currentPage >= totalPages}
+              >
+                {currentPage < totalPages ? (
+                  <Link href={`/dashboard/flagged?page=${currentPage + 1}`}>
+                    Next
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Link>
+                ) : (
+                  <span>
+                    Next
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </span>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Resolution Modal */}

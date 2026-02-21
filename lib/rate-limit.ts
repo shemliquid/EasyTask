@@ -13,14 +13,16 @@ export function rateLimit(options: RateLimitOptions) {
 
   return {
     check: (limit: number, token: string): { success: boolean; remaining: number } => {
-      const tokenCount = tokenCache.get(token) || [0];
-      if (tokenCount[0] === 0) {
+      let tokenCount = tokenCache.get(token);
+      if (!tokenCount) {
+        tokenCount = [1];
         tokenCache.set(token, tokenCount);
+      } else {
+        tokenCount[0] += 1;
       }
-      tokenCount[0] += 1;
 
       const currentUsage = tokenCount[0];
-      const isRateLimited = currentUsage >= limit;
+      const isRateLimited = currentUsage > limit;
 
       return {
         success: !isRateLimited,

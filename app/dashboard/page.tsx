@@ -5,23 +5,36 @@ import { RecordsTable } from "./records-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, FileCheck, AlertCircle } from "lucide-react";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const [students, flaggedCount] = await Promise.all([
+  const currentPage = Number(searchParams.page) || 1;
+  const pageSize = 50;
+  const skip = (currentPage - 1) * pageSize;
+
+  const [students, flaggedCount, totalAssignmentsResult] = await Promise.all([
     prisma.student.findMany({
       orderBy: [{ indexNumber: "asc" }],
+      skip,
+      take: pageSize,
     }),
     prisma.flaggedRecord.count({
       where: { resolved: false },
     }),
+    prisma.student.aggregate({
+      _sum: { assignmentCount: true },
+      _count: true,
+    }),
   ]);
 
-  const totalAssignments = students.reduce(
-    (sum, student) => sum + student.assignmentCount,
-    0,
-  );
+  const totalStudents = totalAssignmentsResult._count;
+  const totalAssignments = totalAssignmentsResult._sum.assignmentCount || 0;
+  const totalPages = Math.ceil(totalStudents / pageSize);
 
   return (
     <div className="space-y-6">
@@ -45,7 +58,7 @@ export default async function DashboardPage() {
                   Total Students
                 </p>
                 <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-neutral-50">
-                  {students.length}
+                  {totalStudents}
                 </p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
@@ -94,7 +107,12 @@ export default async function DashboardPage() {
 
       {/* Records Table */}
       <div>
-        <RecordsTable students={students} userRole={session.user.role} />
+        <RecordsTable
+          students={students}
+          userRole={session.user.role}
+          currentPage={currentPage}
+          totalPages={totalPages}
+        />
       </div>
     </div>
   );

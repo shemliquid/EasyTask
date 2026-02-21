@@ -24,44 +24,53 @@ export async function PATCH(
       );
     }
 
-    // Check if the student exists
-    const existingStudent = await prisma.student.findUnique({
-      where: { id },
-    });
-
-    if (!existingStudent) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 });
-    }
-
-    // Check if the new index number is already taken by another student
-    if (indexNumber !== existingStudent.indexNumber) {
-      const duplicateStudent = await prisma.student.findFirst({
-        where: {
-          indexNumber,
-          id: { not: id },
-        },
+    // Use transaction to prevent race conditions
+    const updatedStudent = await prisma.$transaction(async (tx) => {
+      // Check if the student exists
+      const existingStudent = await tx.student.findUnique({
+        where: { id },
       });
 
-      if (duplicateStudent) {
-        return NextResponse.json(
-          { error: "Index number already exists" },
-          { status: 400 },
-        );
+      if (!existingStudent) {
+        throw new Error("Student not found");
       }
-    }
 
-    // Update the student
-    const updatedStudent = await prisma.student.update({
-      where: { id },
-      data: {
-        name,
-        indexNumber,
-      },
+      // Check if the new index number is already taken by another student
+      if (indexNumber !== existingStudent.indexNumber) {
+        const duplicateStudent = await tx.student.findFirst({
+          where: {
+            indexNumber,
+            id: { not: id },
+          },
+        });
+
+        if (duplicateStudent) {
+          throw new Error("Index number already exists");
+        }
+      }
+
+      // Update the student
+      return await tx.student.update({
+        where: { id },
+        data: {
+          name,
+          indexNumber,
+        },
+      });
     });
 
     return NextResponse.json(updatedStudent);
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
+    if (e.message === "Student not found") {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
+    }
+    if (e.message === "Index number already exists") {
+      return NextResponse.json(
+        { error: "Index number already exists" },
+        { status: 400 },
+      );
+    }
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
