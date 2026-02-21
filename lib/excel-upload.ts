@@ -178,7 +178,6 @@ export async function processExcelUpload(
   if (toCreate.length > 0) {
     await prisma.student.createMany({
       data: toCreate,
-      skipDuplicates: true,
     });
   }
 
