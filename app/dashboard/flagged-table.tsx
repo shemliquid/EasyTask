@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { MoreVertical, Check, Edit, X, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -250,42 +250,34 @@ export function FlaggedTable({ records, currentPage, totalPages }: FlaggedTableP
               Page {currentPage} of {totalPages}
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                asChild={currentPage > 1}
-                disabled={currentPage === 1}
-              >
-                {currentPage > 1 ? (
-                  <Link href={`/dashboard/flagged?page=${currentPage - 1}`}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Previous
-                  </Link>
-                ) : (
-                  <span>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Previous
-                  </span>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                asChild={currentPage < totalPages}
-                disabled={currentPage >= totalPages}
-              >
-                {currentPage < totalPages ? (
-                  <Link href={`/dashboard/flagged?page=${currentPage + 1}`}>
-                    Next
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Link>
-                ) : (
-                  <span>
-                    Next
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </span>
-                )}
-              </Button>
+              {currentPage > 1 ? (
+                <Link
+                  href={`/dashboard/flagged?page=${currentPage - 1}`}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Previous
+                </Link>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Previous
+                </Button>
+              )}
+              {currentPage < totalPages ? (
+                <Link
+                  href={`/dashboard/flagged?page=${currentPage + 1}`}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  Next
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Link>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  Next
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         )}
