@@ -2,8 +2,10 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { authConfig } from "@/auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   providers: [
     Credentials({
       name: "credentials",
@@ -16,7 +18,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({
           where: { email: String(credentials.email) },
         });
-        if (!user || !(await compare(String(credentials.password), user.password)))
+        if (
+          !user ||
+          !(await compare(String(credentials.password), user.password))
+        )
           return null;
         return {
           id: user.id,
@@ -42,9 +47,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     },
-  },
-  pages: {
-    signIn: "/login",
   },
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
 });
